@@ -4,14 +4,20 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import com.example.praktam_2407051014.ui.theme.PrakTAM_2407051014Theme
+import Model.RiderSource
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -20,11 +26,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             PrakTAM_2407051014Theme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Fauzan Adzim",
-                        npm = "2407051014",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                    RiderScr(modifier = Modifier.padding(innerPadding))
                 }
             }
         }
@@ -32,17 +34,38 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier, npm: String) {
-    Text(
-        text = "Hello saya $name dengan NPM $npm siap belajar compose",
-        modifier = modifier
-    )
-}
+fun RiderScr(modifier: Modifier = Modifier) {
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    PrakTAM_2407051014Theme {
-        Greeting("Fauzan Adzim", npm = "2407051014")
+    val listRider = RiderSource.rider
+    LazyColumn(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp)
+    ) {
+        items(listRider) { rider ->
+            Column(modifier = Modifier.padding(vertical = 12.dp)) {
+
+                Image(
+                    painter = painterResource(id = rider.imagesRes),
+                    contentDescription = rider.nama,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "Nama: ${rider.nama}",
+                    style = MaterialTheme.typography.headlineSmall
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Deskripsi: ${rider.deskripsi}",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        }
     }
 }
