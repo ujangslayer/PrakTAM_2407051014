@@ -8,9 +8,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
@@ -35,6 +36,10 @@ import Model.Rider
 
 val PrimaryBlue = Color(0xFF0288D1)
 val LightBlueCard = Color(0xFFE1F5FE)
+data class RiderEra(
+    val nama: String,
+    val gambarRes: Int
+)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,26 +58,90 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun RiderScr(modifier: Modifier = Modifier) {
     val listRider = RiderSource.rider
+    val listEraWithImages = listOf(
+        RiderEra("Era Showa", R.drawable.showa),
+        RiderEra("Era Heisei", R.drawable.ryuki),
+        RiderEra("Era Reiwa", R.drawable.zero_one),
+    )
 
-    Column(
+    LazyColumn(
         modifier = modifier
             .fillMaxSize()
             .background(Color.White)
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = "Krider",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.ExtraBold,
-            color = PrimaryBlue,
-            modifier = Modifier.padding(bottom = 20.dp, top = 8.dp)
-        )
+        item {
+            Text(
+                text = "Krider",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.ExtraBold,
+                color = PrimaryBlue,
+                modifier = Modifier.padding(bottom = 16.dp, top = 16.dp)
+            )
 
-        listRider.forEach { rider ->
+            LazyRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                contentPadding = PaddingValues(horizontal = 8.dp)
+            ) {
+                items(listEraWithImages) { era ->
+                    RiderEraCard(era = era)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                text = "Daftar Rider",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = PrimaryBlue,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+        }
+
+        items(listRider) { rider ->
             RiderItem(rider = rider)
             Spacer(modifier = Modifier.height(20.dp))
+        }
+    }
+}
+
+@Composable
+fun RiderEraCard(era: RiderEra) {
+    Card(
+        modifier = Modifier
+            .width(200.dp)
+            .border(
+                width = 3.dp,
+                color = PrimaryBlue,
+                shape = RoundedCornerShape(16.dp)
+            ),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+        colors = CardDefaults.cardColors(containerColor = LightBlueCard)
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Image(
+                painter = painterResource(id = era.gambarRes),
+                contentDescription = era.nama,
+                contentScale = ContentScale.Crop,
+                alignment = Alignment.TopCenter,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(120.dp)
+                    .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+            )
+            Text(
+                text = era.nama,
+                color = PrimaryBlue,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier
+                    .padding(16.dp)
+                    .align(Alignment.CenterHorizontally)
+            )
         }
     }
 }
@@ -107,6 +176,7 @@ fun RiderItem(rider: Rider) {
                         .height(220.dp)
                         .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
                 )
+
                 IconButton(
                     onClick = { isFavorite = !isFavorite },
                     modifier = Modifier
@@ -120,6 +190,7 @@ fun RiderItem(rider: Rider) {
                     )
                 }
             }
+
             Column(
                 modifier = Modifier.padding(16.dp)
             ) {
