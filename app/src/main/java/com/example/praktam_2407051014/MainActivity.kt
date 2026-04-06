@@ -34,8 +34,6 @@ import com.example.praktam_2407051014.ui.theme.PrakTAM_2407051014Theme
 import Model.RiderSource
 import Model.Rider
 
-val PrimaryBlue = Color(0xFF0288D1)
-val LightBlueCard = Color(0xFFE1F5FE)
 data class RiderEra(
     val nama: String,
     val gambarRes: Int
@@ -46,6 +44,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+
             PrakTAM_2407051014Theme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     RiderScr(modifier = Modifier.padding(innerPadding))
@@ -67,7 +66,7 @@ fun RiderScr(modifier: Modifier = Modifier) {
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -75,8 +74,7 @@ fun RiderScr(modifier: Modifier = Modifier) {
             Text(
                 text = "Krider",
                 style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.ExtraBold,
-                color = PrimaryBlue,
+                color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(bottom = 16.dp, top = 16.dp)
             )
 
@@ -94,8 +92,7 @@ fun RiderScr(modifier: Modifier = Modifier) {
             Text(
                 text = "Daftar Rider",
                 style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = PrimaryBlue,
+                color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
         }
@@ -114,12 +111,12 @@ fun RiderEraCard(era: RiderEra) {
             .width(200.dp)
             .border(
                 width = 3.dp,
-                color = PrimaryBlue,
+                color = MaterialTheme.colorScheme.primary,
                 shape = RoundedCornerShape(16.dp)
             ),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-        colors = CardDefaults.cardColors(containerColor = LightBlueCard)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(
             modifier = Modifier.fillMaxWidth()
@@ -136,8 +133,8 @@ fun RiderEraCard(era: RiderEra) {
             )
             Text(
                 text = era.nama,
-                color = PrimaryBlue,
-                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier
                     .padding(16.dp)
                     .align(Alignment.CenterHorizontally)
@@ -155,12 +152,12 @@ fun RiderItem(rider: Rider) {
             .fillMaxWidth()
             .border(
                 width = 3.dp,
-                color = PrimaryBlue,
+                color = MaterialTheme.colorScheme.primary,
                 shape = RoundedCornerShape(16.dp)
             ),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-        colors = CardDefaults.cardColors(containerColor = LightBlueCard)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(
             modifier = Modifier.fillMaxWidth()
@@ -197,8 +194,7 @@ fun RiderItem(rider: Rider) {
                 Text(
                     text = rider.nama,
                     style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = PrimaryBlue
+                    color = MaterialTheme.colorScheme.primary
                 )
 
                 Spacer(modifier = Modifier.height(6.dp))
@@ -206,8 +202,7 @@ fun RiderItem(rider: Rider) {
                 Text(
                     text = rider.deskripsi,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.DarkGray,
-                    lineHeight = 20.sp
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -216,13 +211,12 @@ fun RiderItem(rider: Rider) {
                     onClick = {},
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
                     Text(
                         text = "Lihat Detail",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.background
                     )
                 }
             }
