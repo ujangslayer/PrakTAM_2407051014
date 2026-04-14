@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,9 +28,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.praktam_2407051014.ui.theme.PrakTAM_2407051014Theme
 import Model.RiderSource
 import Model.Rider
@@ -44,7 +45,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-
             PrakTAM_2407051014Theme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     RiderScr(modifier = Modifier.padding(innerPadding))
@@ -63,44 +63,52 @@ fun RiderScr(modifier: Modifier = Modifier) {
         RiderEra("Era Reiwa", R.drawable.zero_one),
     )
 
-    LazyColumn(
-        modifier = modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(horizontal = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        item {
-            Text(
-                text = "Krider",
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(bottom = 16.dp, top = 16.dp)
-            )
+    val snackbarHostState = remember { SnackbarHostState() }
+    Box(modifier = modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(horizontal = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            item {
+                Text(
+                    text = "Krider",
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(bottom = 16.dp, top = 16.dp)
+                )
 
-            LazyRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                contentPadding = PaddingValues(horizontal = 8.dp)
-            ) {
-                items(listEraWithImages) { era ->
-                    RiderEraCard(era = era)
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    contentPadding = PaddingValues(horizontal = 8.dp)
+                ) {
+                    items(listEraWithImages) { era ->
+                        RiderEraCard(era = era)
+                    }
                 }
+
+                Spacer(modifier = Modifier.height(24.dp))
+                Text(
+                    text = "Daftar Rider",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
-            Text(
-                text = "Daftar Rider",
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
+            items(listRider) { rider ->
+                RiderItem(rider = rider, snackbarHostState = snackbarHostState)
+                Spacer(modifier = Modifier.height(20.dp))
+            }
         }
 
-        items(listRider) { rider ->
-            RiderItem(rider = rider)
-            Spacer(modifier = Modifier.height(20.dp))
-        }
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }
 
@@ -144,8 +152,10 @@ fun RiderEraCard(era: RiderEra) {
 }
 
 @Composable
-fun RiderItem(rider: Rider) {
+fun RiderItem(rider: Rider, snackbarHostState: SnackbarHostState) {
     var isFavorite by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
 
     Card(
         modifier = Modifier
@@ -208,16 +218,34 @@ fun RiderItem(rider: Rider) {
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Button(
-                    onClick = {},
+                    onClick = {
+                        coroutineScope.launch {
+                            isLoading = true
+                            delay(2000)
+                            snackbarHostState.showSnackbar("Berhasil memuat detail ${rider.nama}!")
+                            isLoading = false
+                        }
+                    },
                     modifier = Modifier.fillMaxWidth(),
+                    enabled = !isLoading,
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
-                    Text(
-                        text = "Lihat Detail",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.background
-                    )
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            strokeWidth = 2.dp
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Memproses...")
+                    } else {
+                        Text(
+                            text = "Lihat Detail",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.background
+                        )
+                    }
                 }
             }
         }
