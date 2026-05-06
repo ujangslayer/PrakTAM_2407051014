@@ -4,7 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -16,28 +15,26 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import coil.compose.AsyncImage
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import androidx.compose.ui.unit.dp
+import com.example.praktam_2407051014.network.RetrofitClient
 import com.example.praktam_2407051014.ui.theme.PrakTAM_2407051014Theme
-import Model.RiderSource
-import Model.Rider
+import com.example.praktam_2407051014.Model.Rider
 
 data class RiderEra(
     val nama: String,
-    val gambarRes: Int
+    val imageUrl: String
 )
 
 class MainActivity : ComponentActivity() {
@@ -56,84 +53,99 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun RiderScr(modifier: Modifier = Modifier) {
-    val listRider = RiderSource.rider
+    var listRider by remember { mutableStateOf<List<Rider>>(emptyList()) }
+    var isLoadingData by remember { mutableStateOf(true) }
+    var isError by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        try {
+            val response = RetrofitClient.instance.getRider()
+            listRider = response
+            isLoadingData = false
+        } catch (e: Exception) {
+            isLoadingData = false
+            isError = true
+        }
+    }
+
     val listEraWithImages = listOf(
-        RiderEra("Era Showa", R.drawable.showa),
-        RiderEra("Era Heisei", R.drawable.ryuki),
-        RiderEra("Era Reiwa", R.drawable.zero_one),
+        RiderEra("Era Showa", "https://i.pinimg.com/736x/98/5d/32/985d328c659d1b265e7f353ee8097d8e.jpg"),
+        RiderEra("Era Heisei", "https://i.pinimg.com/736x/41/ab/11/41ab115d78e2a28821a547e8bdca9009.jpg"),
+        RiderEra("Era Reiwa", "https://i.pinimg.com/1200x/00/05/9e/00059eb39d36efac865ff666d6f5cfb4.jpg"),
     )
 
     val snackbarHostState = remember { SnackbarHostState() }
-    Box(modifier = modifier.fillMaxSize()) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .padding(horizontal = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            item {
-                Text(
-                    text = "Krider",
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(bottom = 16.dp, top = 16.dp)
-                )
 
-                LazyRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    contentPadding = PaddingValues(horizontal = 8.dp)
-                ) {
-                    items(listEraWithImages) { era ->
-                        RiderEraCard(era = era)
+    Box(modifier = modifier.fillMaxSize()) {
+        if (isLoadingData) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        } else if (isError) {
+            Box(modifier = Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("Gagal Memuat Data", color = Color.Red, fontWeight = FontWeight.Bold)
+                    Text("Cek koneksi internet Anda", textAlign = TextAlign.Center)
+                }
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
+                    .padding(horizontal = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                item {
+                    Text(
+                        text = "Krider",
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(bottom = 16.dp, top = 16.dp)
+                    )
+
+                    LazyRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        contentPadding = PaddingValues(horizontal = 8.dp)
+                    ) {
+                        items(listEraWithImages) { era ->
+                            RiderEraCard(era = era)
+                        }
                     }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Text(
+                        text = "Daftar Rider",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
-                Text(
-                    text = "Daftar Rider",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-            }
-
-            items(listRider) { rider ->
-                RiderItem(rider = rider, snackbarHostState = snackbarHostState)
-                Spacer(modifier = Modifier.height(20.dp))
+                items(listRider) { rider ->
+                    RiderItem(rider = rider, snackbarHostState = snackbarHostState)
+                    Spacer(modifier = Modifier.height(20.dp))
+                }
             }
         }
 
-        SnackbarHost(
-            hostState = snackbarHostState,
-            modifier = Modifier.align(Alignment.BottomCenter)
-        )
+        SnackbarHost(hostState = snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
     }
 }
 
 @Composable
 fun RiderEraCard(era: RiderEra) {
     Card(
-        modifier = Modifier
-            .width(200.dp)
-            .border(
-                width = 3.dp,
-                color = MaterialTheme.colorScheme.primary,
-                shape = RoundedCornerShape(16.dp)
-            ),
+        modifier = Modifier.width(200.dp).border(3.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(16.dp)),
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        elevation = CardDefaults.cardElevation(6.dp)
     ) {
-        Column(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Image(
-                painter = painterResource(id = era.gambarRes),
+        Column(modifier = Modifier.fillMaxWidth()) {
+            AsyncImage(
+                model = era.imageUrl,
                 contentDescription = era.nama,
                 contentScale = ContentScale.Crop,
-                alignment = Alignment.TopCenter,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(120.dp)
@@ -141,11 +153,8 @@ fun RiderEraCard(era: RiderEra) {
             )
             Text(
                 text = era.nama,
-                color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier
-                    .padding(16.dp)
-                    .align(Alignment.CenterHorizontally)
+                modifier = Modifier.padding(16.dp).align(Alignment.CenterHorizontally),
+                style = MaterialTheme.typography.titleMedium
             )
         }
     }
@@ -154,27 +163,18 @@ fun RiderEraCard(era: RiderEra) {
 @Composable
 fun RiderItem(rider: Rider, snackbarHostState: SnackbarHostState) {
     var isFavorite by remember { mutableStateOf(false) }
-    var isLoading by remember { mutableStateOf(false) }
+    var isDetailLoading by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
 
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .border(
-                width = 3.dp,
-                color = MaterialTheme.colorScheme.primary,
-                shape = RoundedCornerShape(16.dp)
-            ),
+        modifier = Modifier.fillMaxWidth().border(3.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(16.dp)),
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        elevation = CardDefaults.cardElevation(6.dp)
     ) {
-        Column(
-            modifier = Modifier.fillMaxWidth()
-        ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
             Box {
-                Image(
-                    painter = painterResource(id = rider.imagesRes),
+                AsyncImage(
+                    model = rider.imageUrl,
                     contentDescription = rider.nama,
                     contentScale = ContentScale.Crop,
                     alignment = Alignment.TopCenter,
@@ -186,65 +186,38 @@ fun RiderItem(rider: Rider, snackbarHostState: SnackbarHostState) {
 
                 IconButton(
                     onClick = { isFavorite = !isFavorite },
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(8.dp)
+                    modifier = Modifier.align(Alignment.TopEnd).padding(8.dp)
                 ) {
                     Icon(
                         imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
-                        contentDescription = "Favorite Icon",
+                        contentDescription = null,
                         tint = if (isFavorite) Color.Red else Color.White
                     )
                 }
             }
 
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Text(
-                    text = rider.nama,
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.primary
-                )
-
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(text = rider.nama, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
                 Spacer(modifier = Modifier.height(6.dp))
-
-                Text(
-                    text = rider.deskripsi,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
+                Text(text = rider.deskripsi, style = MaterialTheme.typography.bodyMedium)
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Button(
                     onClick = {
                         coroutineScope.launch {
-                            isLoading = true
+                            isDetailLoading = true
                             delay(2000)
                             snackbarHostState.showSnackbar("Berhasil memuat detail ${rider.nama}!")
-                            isLoading = false
+                            isDetailLoading = false
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = !isLoading,
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                    enabled = !isDetailLoading
                 ) {
-                    if (isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp),
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            strokeWidth = 2.dp
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Memproses...")
+                    if (isDetailLoading) {
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp), color = Color.White)
                     } else {
-                        Text(
-                            text = "Lihat Detail",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.background
-                        )
+                        Text("Lihat Detail")
                     }
                 }
             }
